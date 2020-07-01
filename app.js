@@ -13,5 +13,25 @@ app.get('/', (request, response) => {
   response.send('Reached Bird Tracker');
 });
 
+app.get('/api/v1/users/:username/:password', async (request, response) => {
+  const { username, password } = request.params;
+
+  try {
+    const user = await database('users').where('username', username).select();
+
+    if (!user.length) {
+      return response.status(404).json({ error: `username: ${username} does not exist. Please try a different username or create an account` })
+    }
+
+    if (user[0].password !== password) {
+      return response.status(404).json({ error: `The password entered is incorrect. Please try again.`})
+    }
+
+    return response.status(200).json(user);
+  } catch {
+    return response.status(500).json({ error });
+  }
+})
+
 
 module.exports = app;
