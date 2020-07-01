@@ -5,6 +5,9 @@ module.exports = {
   development: {
     client: 'pg',
     connection: 'postgres://localhost/birdtrackerdb',
+    migrations: {
+      directory: './db/migrations'
+    },
     useNullAsDefault: true
   }
 };
