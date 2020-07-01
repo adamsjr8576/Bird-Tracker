@@ -14,6 +14,7 @@ exports.up = knex => {
       table.increments('id').primary();
       table.string('name');
       table.integer('user_id').unsigned();
+      table.foreign('user_id')
         .references('users.id');
 
       table.timestamps(true, true);
