@@ -27,7 +27,8 @@ exports.seed = async knex => {
         photo: 'hawk.jpg',
         wishlist: false,
         favorite: false,
-        category_id: categoryId[0]
+        category_id: categoryId[0],
+        user_id: userId[0]
       },
       {
         bird_species: 'Western Tanniger',
@@ -38,7 +39,8 @@ exports.seed = async knex => {
         photo: 'tanniger.jpg',
         wishlist: false,
         favorite: false,
-        category_id: categoryId[1]
+        category_id: categoryId[1],
+        user_id: userId[0]
       }
     ])
   } catch {
