@@ -33,6 +33,22 @@ app.get('/api/v1/users/:username/:password', async (request, response) => {
   } catch {
     return response.status(500).json({ error });
   }
+});
+
+app.get('/api/v1/categories/:id', async (request, response) => {
+  const { id } = request.params;
+
+  try {
+    const categories = await database('categories').where('user_id', id).select();
+
+    if (!categories.length) {
+      return response.status(404).json({ error: `You do not currently have any categories. Create some!` })
+    }
+
+    return response.status(200).json(categories);
+  } catch {
+    return response.status(500).json({ error });
+  }
 })
 
 
