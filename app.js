@@ -27,7 +27,9 @@ app.get('/api/v1/users/:username/:password', async (request, response) => {
       return response.status(404).json({ error: `The password entered is incorrect. Please try again.`})
     }
 
-    return response.status(200).json(user);
+    const userToSend = [{ id: user[0].id, username: user[0].username, city: user[0].city, state: user[0].state}]
+
+    return response.status(200).json(userToSend);
   } catch {
     return response.status(500).json({ error });
   }
