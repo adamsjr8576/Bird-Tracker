@@ -12,5 +12,17 @@ module.exports = {
       directory: './db/seeds/dev'
     },
     useNullAsDefault: true
+  },
+
+  test: {
+    client: 'pg',
+    connection: 'postgres://localhost/birdtrackerdb',
+    migrations: {
+      directory: './db/migrations'
+    },
+    seeds: {
+      directory: './db/seeds/test'
+    },
+    useNullAsDefault: true,
   }
 };

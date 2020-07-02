@@ -1,9 +1,10 @@
 const express = require('express');
 const app = express();
 
-const environment = process.env.NODE_ENV || 'development';
-const configuration = require('./knexfile')[environment];
-const database = require('knex')(configuration);
+  const environment = process.env.NODE_ENV || 'development';
+  console.log(environment)
+  const configuration = require('./knexfile')[environment];
+  const database = require('knex')(configuration);
 
 app.locals.title = 'Bird Tracker';
 app.use(express.json());
