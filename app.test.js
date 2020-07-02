@@ -6,9 +6,9 @@ const configuration = require('./knexfile')[environment];
 const database = require('knex')(configuration);
 
 describe('API', () => {
-  beforeEach(async () => {
-    await database.seed.run()
-  });
+  // beforeEach(async () => {
+  //   await database.seed.run()
+  // });
 
   describe('initial GET', async () => {
     it('Should return a 200 status at original url', async () => {
@@ -47,13 +47,13 @@ describe('API', () => {
     });
   });
 
-  describe('GET /api/v1/categories/:id', async () => {
+  describe('GET /api/v1/users/:id/categories', async () => {
     it('Should return 200 with the category objects based on a user ID', async () => {
       const expectedUser = await database('users').first();
       const { id } = expectedUser;
       const expectedCategories = await database('categories').where('user_id', id);
 
-      const response = await request(app).get(`/api/v1/categories/${id}`);
+      const response = await request(app).get(`/api/v1/categories/users/${id}`);
       const category = response.body[0];
 
       expect(response.status).toBe(200);
@@ -63,10 +63,33 @@ describe('API', () => {
     it('Should return a 404 if no categories are found', async () => {
       const invalidUserId = 10;
 
-      const response = await request(app).get(`/api/v1/categories/${invalidUserId}`);
+      const response = await request(app).get(`/api/v1/categories/users/${invalidUserId}`);
 
       expect(response.status).toBe(404);
       expect(response.body.error).toEqual('You do not currently have any categories. Create some!');
-    })
+    });
+  });
+
+  describe('GET /api/v1/sightings/users/:id', async () => {
+    it('Should return 200 with the sighting objects based on a UserID', async () => {
+      const expectedUser = await database('users').first();
+      const { id } = expectedUser;
+      const expectedSightings = await database('sightings').where('user_id', id).select();
+
+      const response = await request(app).get(`/api/v1/sightings/users/${id}`);
+      const sighting = response.body[0];
+
+      expect(response.status).toBe(200);
+      expect(sighting.id).toEqual(expectedSightings[0].id)
+    });
+
+    it('Should return 404 and an error object if no Sightings are found', async () => {
+      const invalidUserId = 10;
+
+      const response = await request(app).get(`/api/v1/sightings/users/${invalidUserId}`);
+
+      expect(response.status).toBe(404);
+      expect(response.body.error).toEqual(`You do not currently have any sightings. Go Birding!`);
+    });
   });
 })

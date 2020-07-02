@@ -31,9 +31,9 @@ app.get('/api/v1/users/:username/:password', async (request, response) => {
   }
 });
 
-app.get('/api/v1/categories/:id', async (request, response) => {
+app.get('/api/v1/categories/users/:id', async (request, response) => {
   const { id } = request.params;
-  
+
   try {
     const categories = await database('categories').where('user_id', id).select();
     if (!categories.length) {
@@ -43,7 +43,24 @@ app.get('/api/v1/categories/:id', async (request, response) => {
   } catch {
     return response.status(500).json({ error });
   }
-})
+});
+
+app.get('/api/v1/sightings/users/:id', async (request, response) => {
+  const { id } = request.params;
+
+  try {
+    const sightings = await database('sightings').where('user_id', id).select();
+
+    if (!sightings.length) {
+      return response.status(404).json({error: `You do not currently have any sightings. Go Birding!`})
+    }
+    return response.status(200).json(sightings);
+  } catch {
+    return response.status(500).json({ error });
+  }
+});
+
+
 
 
 module.exports = app;
