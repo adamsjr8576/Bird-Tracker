@@ -6,9 +6,9 @@ const configuration = require('./knexfile')[environment];
 const database = require('knex')(configuration);
 
 describe('API', () => {
-  // beforeEach(async () => {
-  //   await database.seed.run()
-  // });
+  beforeEach(async () => {
+    await database.seed.run()
+  });
 
   describe('initial GET', async () => {
     it('Should return a 200 status at original url', async () => {
@@ -92,4 +92,79 @@ describe('API', () => {
       expect(response.body.error).toEqual(`You do not currently have any sightings. Go Birding!`);
     });
   });
-})
+
+  describe('POST /api/v1/users', async () => {
+    it('Should return a 201 with newly created User ID', async() => {
+      const newUser = {
+        username: 'President',
+        password: 'testing',
+        city: 'Silver Plume',
+        state: 'CO'
+      }
+
+      const response = await request(app).post('/api/v1/users').send(newUser);
+      const users = await database('users').where('id', response.body.id).select();
+      const user = users[0]
+
+      expect(response.status).toBe(201);
+      expect(user.username).toEqual(newUser.username)
+    });
+
+    it('Should return a 422 and an error object if the request body is missing a required key', async () => {
+      const newUser = {
+        username: 'President',
+        password: 'testing',
+        city: 'Silver Plume',
+      }
+
+      const response = await request(app).post('/api/v1/users').send(newUser);
+
+      expect(response.status).toBe(422);
+      expect(response.body.error).toEqual(`invalid format - required format: { username: <string>, password: <string>, city: <string>, state: <string> }. You are missing a state`)
+    });
+
+    it('Should return a 422 and an error object if the request body contains a username that is already taken', async () => {
+      const newUser = {
+        username: 'adamsjr8576',
+        password: 'testing',
+        city: 'Silver Plume',
+        state: 'CO'
+      }
+
+      const response = await request(app).post('/api/v1/users').send(newUser);
+
+      expect(response.status).toBe(422);
+      expect(response.body.error).toEqual(`An account with the username adamsjr8576 already exists - please choose another`)
+    });
+  });
+
+  describe('POST /api/v1/categories', async () => {
+    it('Should return a 422 and an error object if the request body is missing a required key', async () => {
+      const newCategory = {
+        name: 'Birds of Prey'
+      }
+
+      const response = await request(app).post('/api/v1/categories').send(newCategory);
+
+      expect(response.status).toBe(422);
+      expect(response.body.error).toEqual(`invalid format - required format: { name: <string>, user_id: <integer>}. You are missing a user_id`)
+    });
+
+    it('Should return a 201 with a newly created category ID', async () => {
+      const user = await request(app).get('/api/v1/users/adamsjr8576/test');
+      const userID = user.body[0].id;
+
+      const newCategory = {
+        name: 'Birds of Prey',
+        user_id: userID
+      }
+
+      const response = await request(app).post('/api/v1/categories').send(newCategory);
+      const categories = await request(app).get(`/api/v1/categories/users/${userID}`)
+      const category = categories.body.filter(category => category.name === newCategory.name)[0];
+
+      expect(response.status).toBe(201);
+      expect(category.name).toEqual(newCategory.name);
+    });
+  })
+});

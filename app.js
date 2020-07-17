@@ -26,7 +26,7 @@ app.get('/api/v1/users/:username/:password', async (request, response) => {
     }
     const userToSend = [{ id: user[0].id, username: user[0].username, city: user[0].city, state: user[0].state}]
     return response.status(200).json(userToSend);
-  } catch {
+  } catch(error) {
     return response.status(500).json({ error });
   }
 });
@@ -40,7 +40,7 @@ app.get('/api/v1/categories/users/:id', async (request, response) => {
       return response.status(404).json({ error: `You do not currently have any categories. Create some!` })
     }
     return response.status(200).json(categories);
-  } catch {
+  } catch(error) {
     return response.status(500).json({ error });
   }
 });
@@ -55,12 +55,66 @@ app.get('/api/v1/sightings/users/:id', async (request, response) => {
       return response.status(404).json({error: `You do not currently have any sightings. Go Birding!`})
     }
     return response.status(200).json(sightings);
-  } catch {
+  } catch(error) {
     return response.status(500).json({ error });
   }
 });
 
+app.get('/api/v1/sightings/categories/:id', async (request, response) => {
+  const { id } = request.params;
+
+  try {
+    const sightings = await database('sightings').where('category_id', id).select();
+    if (!sightings.length) {
+      return response.status(404).json({ error: `There are currently no sightings for this category. Add some!` })
+    }
+    return response.status(200).json(sightings);
+  } catch(error) {
+    return response.status(500).json({ error });
+  }
+})
+
+app.post('/api/v1/users', async (request, response) => {
+  const user = request.body;
+
+  for (let requiredParam of ['username', 'password', 'city', 'state']) {
+    if (!user[requiredParam]) {
+      return response.status(422).json({ error: `invalid format - required format: { username: <string>, password: <string>, city: <string>, state: <string> }. You are missing a ${requiredParam}` })
+    }
+  }
+
+  try {
+    const userCheck = await database('users').where('username', user.username).select();
+    if (userCheck.length) {
+      return response.status(422).json({ error: `An account with the username ${user.username} already exists - please choose another` })
+    }
+    const id = await database('users').insert(user, 'id');
+    return response.status(201).json({ id: id[0] });
+  } catch(error) {
+    return response.status(500).json({ error });
+  }
+});
+
+app.post('/api/v1/categories', async (request, response) => {
+  const category = request.body;
+
+  for (let requiredParam of ['name', 'user_id']) {
+    if (!category[requiredParam]) {
+      return response.status(422).json({ error: `invalid format - required format: { name: <string>, user_id: <integer>}. You are missing a ${requiredParam}` });
+    }
+  }
+
+  try {
+    const id = await database('categories').insert(category, 'id');
+    return response.status(201).json({ id: id[0] });
+  } catch(error) {
+    return response.status(500).json({ error });
+  }
+});
+
+app.post('/api/v1/sightings', async (request, response) => {
+  const sighting = request.body;
 
 
-
+})
 module.exports = app;
