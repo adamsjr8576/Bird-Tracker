@@ -350,6 +350,34 @@ describe('API', () => {
 
       expect(updatedUser.status).toBe(404);
       expect(updatedUser.body.error).toEqual('Could not locate user: 123');
+    });
+  });
+
+  describe('DELETE /api/v1/sightings/:sightingId', async () => {
+    it('Should return a status of 200 with a successfully delete message when deleted correctly', async () => {
+      const response = await request(app).get('/api/v1/users/adamsjr8576/test');
+      const user = response.body[0];
+      const sightings = await request(app).get(`/api/v1/sightings/users/${user.id}`);
+      const sightingToUpdate = sightings.body[0];
+      const message = await request(app).delete(`/api/v1/sightings/${sightingToUpdate.id}`);
+
+      expect(message.status).toBe(200);
+      expect(message.body.message).toEqual('Success: sighting has been deleted');
+    });
+
+    it('Should return a status of 422 if the id in the param is not a number', async () => {
+      const message = await request(app).delete(`/api/v1/sightings/nan`);
+
+      expect(message.status).toBe(422);
+      expect(message.body.error).toEqual('Incorrect ID: nan, Required data type: <Number>')
+    });
+
+    it('SHould return a status of 404 if the sighting Id is not found', async () => {
+      const message = await request(app).delete(`/api/v1/sightings/123`);
+
+      expect(message.status).toBe(404);
+      expect(message.body.error).toEqual('Could not locate sighting: 123')
     })
   })
+
 });

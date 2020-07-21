@@ -167,8 +167,26 @@ app.patch('/api/v1/users/:userId', async (request, response) => {
     const updatedUser = await database('users').where('id', userId).update(patch, '*');
     return response.status(200).json(updatedUser)
   } catch(error) {
+    return response.status(500).json({ error });
+  }
+});
 
+app.delete('/api/v1/sightings/:sightingId', async (request, response) => {
+  const { sightingId } = request.params;
+
+  if(!parseInt(sightingId)) {
+    return response.status(422).json({ error: `Incorrect ID: ${sightingId}, Required data type: <Number>`});
   }
 
-})
+  try {
+    const sighting = await database('sightings').where('id', sightingId).select();
+    if (sighting.length === 0) {
+      return response.status(404).json({ error: `Could not locate sighting: ${sightingId}` })
+    }
+    const deletedSighting = await database('sightings').where('id', sightingId).del();
+    return response.status(200).json({ message: 'Success: sighting has been deleted' });
+  } catch(error) {
+    return response.status(500).json({ error });
+  }
+});
 module.exports = app;
