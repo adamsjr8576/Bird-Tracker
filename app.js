@@ -115,6 +115,60 @@ app.post('/api/v1/categories', async (request, response) => {
 app.post('/api/v1/sightings', async (request, response) => {
   const sighting = request.body;
 
+  for (let requiredParam of ['bird_species', 'favorite', 'wishlist', 'user_id']){
+    if (sighting[requiredParam] === undefined) {
+      return response.status(422).json({ error: `invalid format - requires species, favorite, wishlist, user_id. You are missing ${requiredParam}`});
+    }
+  }
+
+  try {
+    const id = await database('sightings').insert(sighting, 'id');
+    return response.status(201).json({ id: id[0] });
+  } catch(error) {
+    return response.status(500).json({ error });
+  }
+});
+
+app.patch('/api/v1/sightings/:sightingId', async (request, response) => {
+  const { sightingId } = request.params;
+  const patch = request.body;
+  if(!parseInt(sightingId)) {
+    return response.status(422).json({ error: `Incorrect ID: ${sightingId}, Required data type: <Number>`});
+  }
+
+  try {
+    const sighting = await database('sightings').where('id', sightingId).select();
+    if (sighting.length === 0) {
+      return response.status(404).json({ error: `Could not locate sighting: ${sightingId}` });
+    }
+    const category = await database('categories').where('id', patch.category_id).select();
+    if (category.length === 0) {
+      return response.status(404).json({ error: `Could not locate category: ${patch.category_id}` });
+    }
+    const updateSighting = await database('sightings').where('id', sightingId).update(patch, '*');
+    return response.status(200).json(updateSighting)
+  } catch(error) {
+    return response.status(500).json({ error });
+  }
+});
+
+app.patch('/api/v1/users/:userId', async (request, response) => {
+  const { userId } = request.params;
+  const patch = request.body;
+  if(!parseInt(userId)) {
+    return response.status(422).json({ error: `Incorrect ID: ${userId}, Required data type: <Number>`});
+  }
+
+  try {
+    const user = await database('users').where('id', userId).select();
+    if (user.length === 0) {
+      return response.status(404).json({ error: `Could not locate user: ${userId}` });
+    }
+    const updatedUser = await database('users').where('id', userId).update(patch, '*');
+    return response.status(200).json(updatedUser)
+  } catch(error) {
+
+  }
 
 })
 module.exports = app;

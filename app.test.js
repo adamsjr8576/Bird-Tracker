@@ -166,5 +166,190 @@ describe('API', () => {
       expect(response.status).toBe(201);
       expect(category.name).toEqual(newCategory.name);
     });
+  });
+
+  describe('POST /api/v1/sightings', async () => {
+    it('Should return a 201 with the newly created sighting ID', async () => {
+      const user = await request(app).get('/api/v1/users/adamsjr8576/test');
+      const userID = user.body[0].id;
+
+      const newSighting = {
+        bird_species: 'Nothern Flicker',
+        date: '6/15/2020',
+        city: 'Golden',
+        state: 'Colorado',
+        notes: 'Seen from apartment baloncy feeding on suet',
+        photo: 'birdphoto.jpg',
+        wishlist: false,
+        favorite: false,
+        user_id: userID,
+      }
+
+      const response = await request(app).post('/api/v1/sightings').send(newSighting);
+      const sightings = await request(app).get(`/api/v1/sightings/users/${userID}`);
+      const sighting = sightings.body.filter(sighting => sighting.bird_species === newSighting.bird_species)[0];
+
+      expect(response.status).toBe(201);
+      expect(sighting.bird_species).toEqual(newSighting.bird_species);
+    });
+
+    it('Should return a 422 with an error message stating which required key is missing', async () => {
+      const newSighting = {
+        bird_species: 'Nothern Flicker',
+        date: '6/15/2020',
+        city: 'Golden',
+        state: 'Colorado',
+        notes: 'Seen from apartment baloncy feeding on suet',
+        photo: 'birdphoto.jpg',
+        wishlist: false,
+        favorite: false
+      }
+
+      const response = await request(app).post('/api/v1/sightings').send(newSighting);
+
+      expect(response.status).toBe(422);
+      expect(response.body.error).toEqual('invalid format - requires species, favorite, wishlist, user_id. You are missing user_id')
+    });
+  });
+
+  describe('PATCH /api/v1/sightings/:sighting_id', async () => {
+    it('Should return a status of 200 and the updated sighting if updated correctly', async () => {
+      const user = await request(app).get('/api/v1/users/adamsjr8576/test');
+      const userID = user.body[0].id;
+      const sightings = await request(app).get(`/api/v1/sightings/users/${userID}`);
+      const sightingToUpdate = sightings.body[0];
+
+      const patch = {
+        id: sightingToUpdate.id,
+        bird_species: 'Peregrine Falcon',
+        date: '7/1/2020',
+        city: 'Golden',
+        state: 'CO',
+        notes: 'Seen while walking the dog around the condo complex - it had just caught a rabbit and was eating it!',
+        photo: 'hawk.jpg',
+        wishlist: false,
+        favorite: false,
+        category_id: sightingToUpdate.category_id
+      }
+
+      const updatedSighting = await request(app).patch(`/api/v1/sightings/${patch.id}`).send(patch);
+      const checkUpdatedSighting = await request(app).get(`/api/v1/sightings/users/${userID}`);
+
+      expect(patch.bird_species).toEqual(updatedSighting.body[0].bird_species)
+      expect(patch.bird_species).toEqual(checkUpdatedSighting.body[1].bird_species)
+    });
+
+    it('Should return a status of 422 if the sent ID is not a number', async () => {
+      const user = await request(app).get('/api/v1/users/adamsjr8576/test');
+      const userID = user.body[0].id;
+      const sightings = await request(app).get(`/api/v1/sightings/users/${userID}`);
+      const sightingToUpdate = sightings.body[0];
+
+      const patch = {
+        id: 'wrong',
+        bird_species: 'Peregrine Falcon',
+        date: '7/1/2020',
+        city: 'Golden',
+        state: 'CO',
+        notes: 'Seen while walking the dog around the condo complex - it had just caught a rabbit and was eating it!',
+        photo: 'hawk.jpg',
+        wishlist: false,
+        favorite: false,
+        category_id: sightingToUpdate.category_id
+      }
+
+      const updatedSighting = await request(app).patch(`/api/v1/sightings/${patch.id}`).send(patch);
+      expect(updatedSighting.status).toBe(422);
+      expect(updatedSighting.body.error).toEqual(`Incorrect ID: wrong, Required data type: <Number>`)
+    });
+
+    it('Should return a status of 404 if the sighting to updated does not exist', async () => {
+      const patch = {
+        id: 123,
+        bird_species: 'Peregrine Falcon',
+        date: '7/1/2020',
+        city: 'Golden',
+        state: 'CO',
+        notes: 'Seen while walking the dog around the condo complex - it had just caught a rabbit and was eating it!',
+        photo: 'hawk.jpg',
+        wishlist: false,
+        favorite: false,
+        category_id: 324
+      }
+
+      const updatedSighting = await request(app).patch(`/api/v1/sightings/${patch.id}`).send(patch);
+      expect(updatedSighting.status).toBe(404);
+      expect(updatedSighting.body.error).toEqual('Could not locate sighting: 123')
+    });
+
+    it('Should return a status of 404 if the category to update does not exist', async () => {
+      const user = await request(app).get('/api/v1/users/adamsjr8576/test');
+      const userID = user.body[0].id;
+      const sightings = await request(app).get(`/api/v1/sightings/users/${userID}`);
+      const sightingToUpdate = sightings.body[0];
+
+      const patch = {
+        id: sightingToUpdate.id,
+        bird_species: 'Peregrine Falcon',
+        date: '7/1/2020',
+        city: 'Golden',
+        state: 'CO',
+        notes: 'Seen while walking the dog around the condo complex - it had just caught a rabbit and was eating it!',
+        photo: 'hawk.jpg',
+        wishlist: false,
+        favorite: false,
+        category_id: 324
+      }
+
+      const updatedSighting = await request(app).patch(`/api/v1/sightings/${patch.id}`).send(patch);
+      expect(updatedSighting.status).toBe(404);
+      expect(updatedSighting.body.error).toEqual('Could not locate category: 324')
+    });
+  });
+
+  describe('PATCH /api/v1/users/:userId', async () => {
+    it('Should return a status of 200 and the updated user if successful patch', async () => {
+      const response = await request(app).get('/api/v1/users/adamsjr8576/test');
+      const user = response.body[0];
+
+      const patch = {
+        username: 'jadams813',
+        city: 'Silver Plume',
+        state: 'CO'
+      }
+
+      const updatedUser = await request(app).patch(`/api/v1/users/${user.id}`).send(patch);
+      const newUser = await request(app).get('/api/v1/users/jadams813/test');
+
+      expect(updatedUser.body[0].username).toEqual(patch.username);
+      expect(newUser.body[0].username).toEqual(patch.username);
+      expect(newUser.body[0].city).toEqual(patch.city);
+    });
+
+    it('Should return a status of 422 if the user id is not a number', async () => {
+      const patch = {
+        username: 'jadams813',
+        city: 'Silver Plume',
+        state: 'CO'
+      }
+
+      const updatedUser = await request(app).patch(`/api/v1/users/nan`).send(patch);
+
+      expect(updatedUser.status).toBe(422);
+      expect(updatedUser.body.error).toEqual('Incorrect ID: nan, Required data type: <Number>');
+    });
+
+    it('Should return a status of 404 if the user Id provided is not found', async () => {
+      const patch = {
+        username: 'jadams813',
+        city: 'Silver Plume',
+        state: 'CO'
+      }
+
+      const updatedUser = await request(app).patch(`/api/v1/users/123`).send(patch);
+
+      expect(updatedUser.status).toBe(404);
+      expect(updatedUser.body.error).toEqual('Could not locate user: 123');
+    })
   })
 });
