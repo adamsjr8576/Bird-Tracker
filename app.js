@@ -189,4 +189,25 @@ app.delete('/api/v1/sightings/:sightingId', async (request, response) => {
     return response.status(500).json({ error });
   }
 });
+
+app.delete('/api/v1/users/:userId', async (request, response) => {
+  const { userId } = request.params;
+
+  if (!parseInt(userId)) {
+    return response.status(422).json({ error: `Incorrect ID: ${userId}, required data type: <Number>` })
+  }
+
+  try {
+    const user = await database('users').where('id', userId).select();
+    console.log(user)
+    if (user.length === 0) {
+      return response.status(404).json({ error: `Could not locate user: ${userId}` })
+    }
+
+    const deletedUser = await database('users').where('id', userId).del();
+    return response.status(200).json({ message: 'Success: user has been deleted' });
+  } catch(error) {
+    return response.status(500).json({ error });
+  }
+});
 module.exports = app;

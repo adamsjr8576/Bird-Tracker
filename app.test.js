@@ -377,6 +377,18 @@ describe('API', () => {
 
       expect(message.status).toBe(404);
       expect(message.body.error).toEqual('Could not locate sighting: 123')
+    });
+  });
+
+  describe('DELETE /api/v1/users/:userId', async () => {
+    it('Should return a status of 200 with a successfully delete message when deleted correctly', async () => {
+      const response =  await request(app).get('/api/v1/users/adamsjr8576/test');
+      const user = response.body[0];
+      console.log(user);
+      const message = await request(app).delete(`/api/v1/users/${user.id}`);
+
+      expect(message.status).toBe(200);
+      expect(message.message).toEqual(`Success: user has been deleted`);
     })
   })
 
