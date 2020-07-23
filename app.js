@@ -199,7 +199,6 @@ app.delete('/api/v1/users/:userId', async (request, response) => {
 
   try {
     const user = await database('users').where('id', userId).select();
-    console.log(user)
     if (user.length === 0) {
       return response.status(404).json({ error: `Could not locate user: ${userId}` })
     }

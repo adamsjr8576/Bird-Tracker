@@ -10,14 +10,14 @@ describe('API', () => {
     await database.seed.run()
   });
 
-  describe('initial GET', async () => {
+  describe('initial GET', () => {
     it('Should return a 200 status at original url', async () => {
       const response = await request(app).get('/');
       expect(response.status).toBe(200);
     });
   });
 
-  describe('GET /api/v1/users/:username/:password', async () => {
+  describe('GET /api/v1/users/:username/:password', () => {
     it('Should return 200 with the user information if username and password are correct', async () => {
       const expectedUser = await database('users').where('username', 'adamsjr8576').select();
 
@@ -47,7 +47,7 @@ describe('API', () => {
     });
   });
 
-  describe('GET /api/v1/users/:id/categories', async () => {
+  describe('GET /api/v1/users/:id/categories', () => {
     it('Should return 200 with the category objects based on a user ID', async () => {
       const expectedUser = await database('users').first();
       const { id } = expectedUser;
@@ -70,7 +70,7 @@ describe('API', () => {
     });
   });
 
-  describe('GET /api/v1/sightings/users/:id', async () => {
+  describe('GET /api/v1/sightings/users/:id', () => {
     it('Should return 200 with the sighting objects based on a UserID', async () => {
       const expectedUser = await database('users').first();
       const { id } = expectedUser;
@@ -93,7 +93,7 @@ describe('API', () => {
     });
   });
 
-  describe('POST /api/v1/users', async () => {
+  describe('POST /api/v1/users', () => {
     it('Should return a 201 with newly created User ID', async() => {
       const newUser = {
         username: 'President',
@@ -138,7 +138,7 @@ describe('API', () => {
     });
   });
 
-  describe('POST /api/v1/categories', async () => {
+  describe('POST /api/v1/categories', () => {
     it('Should return a 422 and an error object if the request body is missing a required key', async () => {
       const newCategory = {
         name: 'Birds of Prey'
@@ -168,7 +168,7 @@ describe('API', () => {
     });
   });
 
-  describe('POST /api/v1/sightings', async () => {
+  describe('POST /api/v1/sightings', () => {
     it('Should return a 201 with the newly created sighting ID', async () => {
       const user = await request(app).get('/api/v1/users/adamsjr8576/test');
       const userID = user.body[0].id;
@@ -212,7 +212,7 @@ describe('API', () => {
     });
   });
 
-  describe('PATCH /api/v1/sightings/:sighting_id', async () => {
+  describe('PATCH /api/v1/sightings/:sighting_id', () => {
     it('Should return a status of 200 and the updated sighting if updated correctly', async () => {
       const user = await request(app).get('/api/v1/users/adamsjr8576/test');
       const userID = user.body[0].id;
@@ -307,7 +307,7 @@ describe('API', () => {
     });
   });
 
-  describe('PATCH /api/v1/users/:userId', async () => {
+  describe('PATCH /api/v1/users/:userId', () => {
     it('Should return a status of 200 and the updated user if successful patch', async () => {
       const response = await request(app).get('/api/v1/users/adamsjr8576/test');
       const user = response.body[0];
@@ -353,7 +353,7 @@ describe('API', () => {
     });
   });
 
-  describe('DELETE /api/v1/sightings/:sightingId', async () => {
+  describe('DELETE /api/v1/sightings/:sightingId', () => {
     it('Should return a status of 200 with a successfully delete message when deleted correctly', async () => {
       const response = await request(app).get('/api/v1/users/adamsjr8576/test');
       const user = response.body[0];
@@ -380,16 +380,29 @@ describe('API', () => {
     });
   });
 
-  describe('DELETE /api/v1/users/:userId', async () => {
+  describe('DELETE /api/v1/users/:userId', () => {
     it('Should return a status of 200 with a successfully delete message when deleted correctly', async () => {
       const response =  await request(app).get('/api/v1/users/adamsjr8576/test');
       const user = response.body[0];
-      console.log(user);
       const message = await request(app).delete(`/api/v1/users/${user.id}`);
 
       expect(message.status).toBe(200);
-      expect(message.message).toEqual(`Success: user has been deleted`);
-    })
+      expect(message.body.message).toEqual(`Success: user has been deleted`);
+    });
+
+    it('Should return a status of 422 if the id provided is not an integer', async () => {
+      const message = await request(app).delete('/api/v1/users/nan');
+
+      expect(message.status).toBe(422);
+      expect(message.body.error).toEqual('Incorrect ID: nan, required data type: <Number>')
+    });
+
+    it('Should return a status of 404 if the id provided could not be found', async () => {
+      const message = await request(app).delete('/api/v1/users/123');
+
+      expect(message.status).toBe(404);
+      expect(message.body.error).toEqual('Could not locate user: 123');
+    });
   })
 
 });
