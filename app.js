@@ -7,6 +7,7 @@ const cors = require('cors');
   const database = require('knex')(configuration);
 
 app.locals.title = 'Bird Tracker';
+app.set('port', process.env.PORT || 3000);
 app.use(express.json());
 app.use(cors());
 
