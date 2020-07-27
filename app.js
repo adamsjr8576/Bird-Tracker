@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+const cors = require('cors');
 
   const environment = process.env.NODE_ENV || 'development';
   const configuration = require('./knexfile')[environment];
@@ -7,7 +8,7 @@ const app = express();
 
 app.locals.title = 'Bird Tracker';
 app.use(express.json());
-
+app.use(cors());
 
 app.get('/', (request, response) => {
   response.send('Reached Bird Tracker');
@@ -209,4 +210,6 @@ app.delete('/api/v1/users/:userId', async (request, response) => {
     return response.status(500).json({ error });
   }
 });
+
+
 module.exports = app;
