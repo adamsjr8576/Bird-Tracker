@@ -4,6 +4,7 @@ const cors = require('cors');
 
   const environment = process.env.NODE_ENV || 'development';
   const configuration = require('./knexfile')[environment];
+  console.log(configuration)
   const database = require('knex')(configuration);
 
 app.locals.title = 'Bird Tracker';
@@ -15,6 +16,7 @@ app.get('/', (request, response) => {
 });
 
 app.get('/api/v1/users/:username/:password', async (request, response) => {
+  console.log('hey')
   const { username, password } = request.params;
 
   try {
